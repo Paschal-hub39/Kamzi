@@ -381,17 +381,23 @@ function AppContent() {
     }
   }, [user]);
 
-  // FCM Token registration
+    // FCM Token registration
   useEffect(() => {
     if (!user) return;
     
+    const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+    
+    if (!VAPID_KEY) {
+      console.warn('FCM VAPID key not configured — push notifications disabled');
+      return;
+    }
+    
     const registerFCM = async () => {
       try {
-        const token = await getToken(messaging, {
-          vapidKey: 'YOUR_VAPID_KEY_HERE' // Replace with your VAPID key
-        });
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
         if (token) {
           await setDoc(doc(db, 'users', user.uid), { fcmToken: token }, { merge: true });
+          console.log('FCM token registered');
         }
       } catch (err) {
         console.warn('FCM registration failed:', err);
@@ -399,6 +405,13 @@ function AppContent() {
     };
 
     registerFCM();
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log('Foreground message:', payload);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
 
     // Handle foreground messages
     const unsubscribe = onMessage(messaging, (payload) => {
