@@ -1,5 +1,9 @@
 // Offload AI processing: transcription, summarization, mood detection
-const API_KEY = self.API_KEY || '';
+const API_KEY = self.API_KEY || import.meta.env?.VITE_OPENAI_KEY || '';
+
+if (!API_KEY) {
+  console.warn('AI Worker: OpenAI key not available');
+}
 
 self.onmessage = async (e) => {
   const { action, payload } = e.data;
@@ -7,9 +11,7 @@ self.onmessage = async (e) => {
   try {
     switch (action) {
       case 'transcribe': {
-        // Web Speech API alternative - chunk processing
         const { audioBuffer } = payload;
-        // In production: send to Whisper API or process locally
         self.postMessage({ success: true, result: '[Transcription placeholder]' });
         break;
       }
