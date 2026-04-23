@@ -67,11 +67,17 @@ enableIndexedDbPersistence(db).catch((err) => {
 // ─────────────────────────────────────────────
 // FCM HELPERS
 // ─────────────────────────────────────────────
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY || '';
+
+if (!VAPID_KEY && import.meta.env.DEV) {
+  console.warn('⚠️ VITE_FIREBASE_VAPID_KEY not found in .env — push notifications disabled');
+}
+
 const requestFCMToken = async () => {
+  if (!VAPID_KEY) return null;
+  
   try {
-    const token = await getToken(messaging, {
-      vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
-    });
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
     return token;
   } catch (err) {
     console.error('FCM token error:', err);
@@ -101,4 +107,3 @@ export {
 };
 
 export default app;
-                  
